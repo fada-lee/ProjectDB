@@ -171,17 +171,7 @@ class Upbookingform:
             self.dateMOUT.bind('<FocusOut>',on_exit5)
             self.dateYOUT.bind('<FocusOut>',on_exit6)
 
-
-    def Out(self):
-      open_home = messagebox.askyesno('CHECK OUT' ,'Do you want to check out, right?')
-      if open_home>0:
-        DB_connect.checkOut(self.dorm,self.room,bk_id)
-        return open_home
-      else: 
-        if not open_home:
-          return -1
       
-
     def updatebooks(self):
       open_home = messagebox.askyesno('????' ,'Do you want to update the information?')
       if open_home>0:
@@ -193,7 +183,19 @@ class Upbookingform:
         if not open_home:
           return -1
         
-  
+    def Out(self):
+      billDB= DB_connect.bills(bk_id)
+      if billDB !=():
+        messagebox.showerror('Checkout Error','You have a paid Bill.')
+        return -1
+      else:
+        open_home = messagebox.askyesno('CHECK OUT' ,'Do you want to check out, right?')
+        if open_home>0:
+          DB_connect.checkOut(self.dorm,self.room,bk_id)
+          return open_home
+        else: 
+          if not open_home:
+            return -1  
 
 
 
