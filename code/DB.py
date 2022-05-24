@@ -277,6 +277,36 @@ class DB_connect:
         row = cur.fetchall()
         return row
 
+    #บันทึกข้อมูลลงดาต้าเบส
+    def insertpaymemt(payid,paydate,stuid,billid,filename,total,repairid):
+        
+        #//ไม่มีการแจ้งซ่อม
+        if repairid ==():
+            cur.execute("insert into payments values(%s,%s,%s,%s,%s,%s)" ,
+                    (payid,paydate,stuid,billid,filename,total))
+            cur.execute("update bills set bill_status = 'paid' where bill_no = %s",billid)
+            con.commit()
+
+        else:
+            #//มีการแจ้งซ่อม
+            cur.execute("insert into payments values(%s,%s,%s,%s,%s,%s)" ,
+                    (payid,paydate,stuid,billid,filename,total))
+            cur.execute("update bills set bill_status = 'paid' where bill_no = %s",billid)
+            for i in range(len(repairid)):
+                query = """update repairs
+                            set repair_status = 'paid', 
+                                pay_id =%s
+                            where repair_id = %s"""
+                value = (payid,repairid[i])
+                cur.execute(query,value)
+                cur.fetchall()
+            con.commit()
+        open_home = messagebox.askyesno('SUCCESS' ,'Report a successful payment.\nGo back home?')
+        return open_home
+
+
+
+
     def billhistory(bookingid,month): #ประวัติการจ่ายบิล
         query=("""select Bill_No, date_format(Bill_date, '%%M %%Y'), 
                         Water_old, Water_new, Power_old, Power_new, Bill_status,
@@ -383,32 +413,6 @@ class DB_connect:
     #ใช้ def dormdata() แสดงข้อมูลหอพัก
     #ใช้ def bills() และ def repair() เพื่อรวมยอดชำระ
     
-    #บันทึกข้อมูลลงดาต้าเบส
-    def insertpaymemt(payid,paydate,stuid,billid,filename,total,repairid):
-        
-        #//ไม่มีการแจ้งซ่อม
-        if repairid ==():
-            cur.execute("insert into payments values(%s,%s,%s,%s,%s,%s)" ,
-                    (payid,paydate,stuid,billid,filename,total))
-            cur.execute("update bills set bill_status = 'paid' where bill_no = %s",billid)
-            con.commit()
-
-        else:
-            #//มีการแจ้งซ่อม
-            cur.execute("insert into payments values(%s,%s,%s,%s,%s,%s)" ,
-                    (payid,paydate,stuid,billid,filename,total))
-            cur.execute("update bills set bill_status = 'paid' where bill_no = %s",billid)
-            for i in range(len(repairid)):
-                query = """update repairs
-                            set repair_status = 'paid', 
-                                pay_id =%s
-                            where repair_id = %s"""
-                value = (payid,repairid[i])
-                cur.execute(query,value)
-                cur.fetchall()
-            con.commit()
-        open_home = messagebox.askyesno('SUCCESS' ,'Report a successful payment.\nGo back home?')
-        return open_home
 
     def showRepair(bookingid):
         query = """select repair_date, repair_name,
